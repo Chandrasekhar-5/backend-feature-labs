@@ -24,6 +24,7 @@ This project is built to deeply understand how modern authentication and authori
   - [Database Models](#database-models)
     - [User Model](#user-model)
     - [Note Model](#note-model)
+    - [Session Model](#session-model)
       - [A user can:](#a-user-can)
   - [Tech Stack](#tech-stack)
     - [Frontend:](#frontend)
@@ -185,11 +186,10 @@ Admin can:
 ### User Model
 ```js
 {
-  name,
+  username,
   email,
   password,
-  role,
-  refreshTokens
+  role
 }
 ```
 
@@ -204,6 +204,18 @@ Admin can:
 
 owner → references User ID
 
+### Session Model
+```js
+{
+  user,
+  refreshTokenHash,
+  ip,
+  userAgent,
+  revoked,
+  createdAt,
+  updatedAt
+}
+```
 
 #### A user can:
 
@@ -261,6 +273,8 @@ owner → references User ID
 - cookie-parser
 - dotenv
 - mongoose
+- morgan
+- nodemon
 
 
 
