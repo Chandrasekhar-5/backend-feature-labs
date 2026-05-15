@@ -1,0 +1,13 @@
+{
+  "type":"module",
+  "scripts": {
+    "dev":"npx nodemon server.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.6.2",
+    "morgan": "^1.10.1",
+    "nodemon": "^3.1.14"
+  }
+}
