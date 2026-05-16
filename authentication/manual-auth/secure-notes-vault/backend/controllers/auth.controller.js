@@ -251,3 +251,65 @@ export async function refreshToken(req, res) {
     }
 
 }
+
+
+export async function logout(req, res) {
+    try {
+
+        const refreshToken = req.cookies.refreshToken;
+
+        if (!refreshToken) {
+            return res.status(401).json({ message: 'Refresh token is not found' });
+        }
+
+
+        const decoded = jwt.verify(refreshToken, config.JWT_SECRET);
+
+
+        const session = await sessionModel.findOne({
+            deviceId: decoded.deviceId,
+            revoked: false
+        });
+
+        if (!session) {
+            return res.status(401).json({ message: 'Session not found' });
+        }
+
+
+        session.revoked = true;
+        await session.save();
+
+        res.clearCookie('refreshToken');
+        res.status(200).json({ message: 'User logged out successfully' });
+    }
+    catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+}
+
+
+export async function logoutAll(req, res) {
+    try {
+
+        const refreshToken = req.cookies.refreshToken;
+
+        if (!refreshToken) {
+            return res.status(401).json({ message: 'Refresh Token is not found' });
+        }
+
+        const decoded = jwt.verify(refreshToken, config.JWT_SECRET);
+
+        await sessionModel.updateMany({
+            user: decoded.id,
+            revoked: false
+        }, {
+            revoked: true
+        });
+
+        res.clearCookie('refreshToken');
+        res.status(200).json({ message: 'All sessions logged out successfully' });
+    }
+    catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+}
