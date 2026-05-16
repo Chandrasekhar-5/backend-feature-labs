@@ -6,6 +6,10 @@ const sessionSchema = new mongoose.Schema({
         ref: 'User',
         required: [true, 'User is required']
     },
+    deviceId: {
+        type: String,
+        required: true
+    },
     refreshTokenHash: {
         type: String,
         required: [true, 'Refresh token hash is required'],
