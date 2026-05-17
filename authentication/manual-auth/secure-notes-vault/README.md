@@ -37,9 +37,17 @@ This project is built to deeply understand how modern authentication and authori
       - [Request body:](#request-body)
       - [Response body:](#response-body)
     - [2. Login](#2-login)
+  - [Request Body](#request-body-1)
+  - [Response Body](#response-body-1)
     - [3. Refresh Access Token](#3-refresh-access-token)
+  - [Request Body](#request-body-2)
+  - [Response body](#response-body-2)
     - [4. Logout](#4-logout)
+  - [Request Body](#request-body-3)
+  - [Respone Body](#respone-body)
     - [5. Logout All Devices](#5-logout-all-devices)
+  - [Request Body](#request-body-4)
+  - [Response Body](#response-body-3)
     - [6. Forgot Password](#6-forgot-password)
     - [7. Reset Password](#7-reset-password)
     - [USER APIs](#user-apis)
@@ -291,14 +299,23 @@ POST /api/auth/register
 #### Request body:
 ```json
 {
-
+  "username": String,
+  "email": String,
+  "password": String,
+  "role": String
 }
 ```
 
 #### Response body:
 ```json
 {
-
+  "message": "User registered successfully",
+  "user": {
+    "username": String,
+    "email": String,
+    "role": String
+  },
+  "accessToken": String
 }
 ```
 
@@ -309,6 +326,28 @@ POST /api/auth/register
 POST /api/auth/login
 ```
 
+## Request Body
+```
+{
+"email": String,
+"password": String
+}
+```
+
+
+## Response Body
+```
+{
+  "message": "User logged in successfully",
+  "user": {
+    "username": String,
+    "email": String,
+    "role": String
+  },
+  "accessToken": String
+}
+```
+
 
 ### 3. Refresh Access Token
 
@@ -316,15 +355,65 @@ POST /api/auth/login
 POST /api/auth/refresh
 ```
 
+## Request Body
+- cookie
+
+
+## Response body
+```json
+{
+  "message": "Access token refreshed successfully",
+  "accessToken": String
+}
+```
+
 ### 4. Logout
 ```
 POST /api/auth/logout
+```
+
+## Request Body
+- cookie
+
+## Respone Body
+```json
+{
+"message": "User logged out successfully"
+}
+```
+
+<br>
+
+```json
+{
+"message": "Refresh token is not found"
+}
 ```
 
 
 ### 5. Logout All Devices
 ```
 POST /api/auth/logout-all
+```
+
+## Request Body
+- cookie
+
+
+## Response Body
+```json
+{
+  "message": "All sessions logged out successfully"
+}
+```
+
+<br>
+
+
+```json
+{
+  "message": "Refresh Token is not found"
+}
 ```
 
 
