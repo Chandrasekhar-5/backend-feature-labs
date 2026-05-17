@@ -39,7 +39,18 @@ export async function register(req, res) {
             role: 'user'
         });
 
-        const deviceId = randomUUID();
+        let deviceId = req.cookies.deviceId;
+
+        if (!deviceId) {
+            deviceId = randomUUID();
+
+            res.cookie('deviceId', deviceId, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'strict',
+                maxAge: 365 * 24 * 60 * 60 * 1000
+            });
+        }
 
 
         const refreshToken = jwt.sign({
@@ -117,7 +128,18 @@ export async function login(req, res) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        const deviceId = randomUUID();
+        let deviceId = req.cookies.deviceId;
+
+        if (!deviceId) {
+            deviceId = randomUUID();
+
+            res.cookie('deviceId', deviceId, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'strict',
+                maxAge: 365 * 24 * 60 * 60 * 1000
+            });
+        }
 
 
         const refreshToken = jwt.sign(
@@ -131,13 +153,30 @@ export async function login(req, res) {
         const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
 
 
-        const session = await sessionModel.create({
+        let session = await sessionModel.findOne({
+            user: user._id,
+            deviceId
+        });
+
+
+        if (session) {
+            session.refreshTokenHash = refreshTokenHash;
+            session.ip = req.ip;
+            session.userAgent = req.get('user-agent');
+            session.revoked = false;
+
+            await session.save();
+        }
+
+        else {
+         session = await sessionModel.create({
             user: user._id,
             deviceId,
             refreshTokenHash,
             ip: req.ip,
             userAgent: req.headers['user-agent']
         });
+        }
 
 
         const accessToken = jwt.sign(
