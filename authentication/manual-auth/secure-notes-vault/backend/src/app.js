@@ -3,6 +3,7 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import authRouter from '../routes/auth.route.js';
 import { errorHandler } from '../middlewares/error.middleware.js';
+import userRouter from '../routes/user.routes.js';
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.use(cookieParser());
 
 
 app.use('/api/auth', authRouter);
+app.use('/api/users', userRouter);
 
 
 app.use(errorHandler);
