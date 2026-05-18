@@ -766,3 +766,676 @@ Completed:
 - Start frontend integration
 - Implement protected routes
 - Implement authorization middleware
+
+<br><br>
+
+# **Day 3 - Protected Routes, Middleware, User APIs, Notes APIs, and Admin APIs**
+
+---
+
+# Documentation Updates
+
+Updated:
+- docs files
+- README.md
+
+Purpose:
+Keep project documentation synchronized with implementation progress.
+
+---
+
+# Session Handling Improvement
+
+Solved previous issue:
+- new session record created for every login
+
+---
+
+# Previous Behavior
+
+```text
+Every login
+↓
+New session document created
+```
+
+Problem:
+Even same device generated multiple session records.
+
+---
+
+# Solution Implemented
+
+Before creating a session:
+- check whether same device already exists for user
+
+Logic:
+```text
+same user + same deviceId
+```
+
+If exists:
+- update session fields
+
+If not:
+- create new session
+
+Purpose:
+Reuse sessions for same device and avoid unnecessary session records.
+
+---
+
+# Git Workflow
+
+Actions performed:
+- merged branch into main
+- deleted completed branch
+- created new branch for:
+  - user APIs
+  - notes APIs
+  - admin APIs
+
+Purpose:
+Maintain cleaner feature-based development workflow.
+
+---
+
+# Authentication Middleware Setup
+
+Created:
+```text
+middlewares/auth.middleware.js
+```
+
+Purpose:
+Protect private routes and implement authorization.
+
+---
+
+# Protect Middleware Flow
+
+Flow implemented:
+
+```text
+1. Extract access token
+2. Verify JWT
+3. Find session
+4. Check revoked status
+5. Find user
+6. Attach req.user
+7. Attach req.session
+8. next()
+```
+
+---
+
+# Protect Middleware Implementation
+
+## Token Extraction
+
+Took token from:
+```js
+req.headers.authorization
+```
+
+If missing:
+```js
+"Token not found"
+```
+
+Purpose:
+Prevent unauthorized access.
+
+---
+
+# JWT Verification
+
+Used:
+```js
+jwt.verify()
+```
+
+with:
+```js
+config.JWT_SECRET
+```
+
+Purpose:
+Validate access token authenticity.
+
+---
+
+# Session Validation
+
+Found session using:
+```js
+decoded.session
+```
+
+Checks performed:
+- session exists
+- session not revoked
+
+If invalid:
+```js
+"Session not found"
+"Session revoked"
+```
+
+Purpose:
+Prevent access using revoked sessions.
+
+---
+
+# User Validation
+
+Found user using:
+```js
+decoded.id
+```
+
+Excluded:
+```js
+-password
+```
+
+If user not found:
+```js
+"User not found"
+```
+
+Purpose:
+Ensure valid authenticated user exists.
+
+---
+
+# Request Attachments
+
+Attached:
+```js
+req.user
+req.session
+```
+
+Called:
+```js
+next()
+```
+
+Purpose:
+Pass authenticated user/session to next middleware or controller.
+
+---
+
+# Admin Middleware
+
+Created:
+```js
+adminOnly
+```
+
+Logic:
+```js
+if (req.user.role !== "admin")
+```
+
+Response:
+```js
+"Access denied"
+```
+
+Purpose:
+Restrict admin-only routes.
+
+---
+
+# Error Middleware Setup
+
+Created:
+```text
+middlewares/error.middleware.js
+```
+
+Created:
+```js
+errorHandler
+```
+
+Imported and used in:
+```js
+app.js
+```
+
+Purpose:
+Centralized error handling.
+
+---
+
+# User APIs Implementation
+
+Created:
+```text
+controllers/user.controller.js
+```
+
+---
+
+# Get Profile API
+
+Created function:
+```js
+me
+```
+
+Returned:
+```js
+req.user
+```
+
+Purpose:
+Allow authenticated user to retrieve profile information.
+
+---
+
+# User Routes Setup
+
+Created:
+```text
+routes/user.routes.js
+```
+
+Configured route:
+```js
+GET /me
+```
+
+Middlewares:
+```js
+protect
+```
+
+Controller:
+```js
+userController.me
+```
+
+Mounted in:
+```js
+/api/users
+```
+
+Result:
+API tested successfully.
+
+---
+
+# Notes APIs Implementation
+
+Created:
+```text
+controllers/note.controller.js
+```
+
+---
+
+# Create Note API
+
+Created function:
+```js
+createNote
+```
+
+Took:
+```js
+title
+content
+```
+
+Validation:
+```js
+All fields are required
+```
+
+Created note with:
+```js
+title
+content
+owner: req.user._id
+```
+
+Purpose:
+Ensure notes belong to authenticated user.
+
+---
+
+# Note Routes Setup
+
+Created:
+```text
+routes/note.routes.js
+```
+
+Configured:
+```js
+POST /create-note
+```
+
+Middleware:
+```js
+protect
+```
+
+Controller:
+```js
+noteController.createNote
+```
+
+Mounted in:
+```js
+/api/notes
+```
+
+---
+
+# Get My Notes API
+
+Created function:
+```js
+getMyNotes
+```
+
+Used:
+```js
+owner: req.user._id
+```
+
+Purpose:
+Return only authenticated user’s notes.
+
+Configured route:
+```js
+GET /my-notes
+```
+
+Middleware:
+```js
+protect
+```
+
+Result:
+Tested successfully.
+
+---
+
+# Update My Note API
+
+Created function:
+```js
+updateMyNote
+```
+
+Took:
+```js
+noteId
+```
+
+from:
+```js
+req.params
+```
+
+---
+
+# Allowed Fields Design
+
+Created:
+```js
+allowedFields
+```
+
+Current fields:
+```js
+title
+content
+```
+
+Observation:
+In production:
+- only non-sensitive fields should be user-editable.
+
+---
+
+# Dynamic Update Object
+
+Used:
+```js
+Object.entries(req.body)
+```
+
+Logic:
+- validate field
+- skip undefined values
+- build updates object dynamically
+
+Purpose:
+Prevent unwanted field modification.
+
+---
+
+# Note Update Logic
+
+Used:
+```js
+findByIdAndUpdate()
+```
+
+Options:
+```js
+new: true
+runValidators: true
+```
+
+If note not found:
+```js
+"Note not found"
+```
+
+Result:
+API tested successfully.
+
+---
+
+# Delete Note API
+
+Created function:
+```js
+deleteNote
+```
+
+Used:
+```js
+findByIdAndDelete()
+```
+
+Validation:
+```js
+Note not found
+```
+
+Response:
+```js
+"Note deleted successfully"
+```
+
+Result:
+All note APIs tested successfully.
+
+---
+
+# Admin APIs Implementation
+
+Created:
+```text
+controllers/admin.controller.js
+```
+
+---
+
+# Get All Users API
+
+Created function:
+```js
+getAllUsers
+```
+
+Used:
+```js
+role: "user"
+```
+
+Purpose:
+Return all normal users.
+
+---
+
+# Admin Routes Setup
+
+Created:
+```text
+routes/admin.routes.js
+```
+
+Used middlewares:
+```js
+protect
+adminOnly
+```
+
+Configured route:
+```js
+GET /all-users
+```
+
+Mounted in:
+```js
+/api/admin
+```
+
+---
+
+# Important Bug Encountered
+
+Problem:
+API returned:
+```text
+IPC timeout
+```
+
+---
+
+# Root Cause
+
+Forgot:
+```js
+next()
+```
+
+inside:
+```js
+adminOnly
+```
+
+middleware.
+
+---
+
+# Fix
+
+Added:
+```js
+next()
+```
+
+Result:
+Admin API worked correctly.
+
+---
+
+# Delete Any Note API
+
+Created function:
+```js
+deleteAnyNote
+```
+
+Took:
+```js
+noteId
+```
+
+Used:
+```js
+findByIdAndDelete()
+```
+
+Validation:
+```js
+Note not found
+```
+
+Response:
+```js
+"Note deleted successfully"
+```
+
+Configured route:
+```js
+DELETE /delete-note/:noteId
+```
+
+Middlewares:
+```js
+protect
+adminOnly
+```
+
+Result:
+Admin note deletion working successfully.
+
+---
+
+# Current Progress
+
+Completed:
+- authentication middleware
+- admin middleware
+- error middleware
+- get profile API
+- create note API
+- get my notes API
+- update note API
+- delete note API
+- get all users API
+- delete any note API
+
+---
+
+# Learnings Today
+
+- Learned protected route flow
+- Understood middleware chaining
+- Learned role-based authorization
+- Understood request attachment patterns
+- Learned dynamic update object handling
+- Understood centralized error middleware
+- Learned importance of next() in middleware flow
+
+---
+
+# Tomorrow's Plan
+
+- Start frontend
+- Connect frontend with APIs
+- Implement authentication frontend flow
+- Add protected frontend pages
+- Improve validation and production readiness
