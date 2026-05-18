@@ -115,3 +115,100 @@ single active session
 ```
 
 for cleaner session table.
+
+<br>
+
+# Problem: IPC Timeout in Admin API
+
+## Error
+
+```text
+IPC timeout
+```
+
+Occurred while testing:
+```text
+GET /api/admin/all-users
+```
+
+---
+
+# Root Cause
+
+Forgot to call:
+```js
+next()
+```
+
+inside:
+```js
+adminOnly
+```
+
+middleware.
+
+Result:
+Request never moved to controller.
+
+---
+
+# Fix
+
+Added:
+```js
+next()
+```
+
+after admin role validation.
+
+---
+
+# Learning
+
+Middleware must:
+- return response
+OR
+- call next()
+
+Otherwise request hangs indefinitely.
+
+---
+
+# Problem: Duplicate Sessions Per Login
+
+## Previous Behavior
+
+Every login:
+```text
+Created new session document
+```
+
+even on same device.
+
+---
+
+# Fix
+
+Used:
+```js
+deviceId
+```
+
+to:
+- check existing session
+- update existing session
+- create new session only if device not found
+
+---
+
+# Result
+
+Same device:
+```text
+Updates session
+```
+
+New device:
+```text
+Creates new session
+```
